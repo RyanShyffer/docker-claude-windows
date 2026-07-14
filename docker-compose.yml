@@ -1,0 +1,59 @@
+services:
+  claude:
+    build:
+      context: .
+    image: lotus-claude-windows:latest
+    # Host build (Win11 25H2) differs from the ltsc2025 image build, so
+    # Hyper-V isolation is required; process isolation would fail to start.
+    isolation: hyperv
+    # Hyper-V containers default to 1 GB RAM — far too little for a .NET build.
+    mem_limit: 12g
+    cpus: 6
+    stdin_open: true
+    tty: true
+    environment:
+      # Optional: set in the host shell (or a .env file next to this compose
+      # file) for headless auth. Leave empty to use `claude` OAuth login once —
+      # credentials persist in the claude-config volume.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GH_TOKEN: ${GH_TOKEN:-}
+    volumes:
+      # The repository, mounted live — edits made by Claude land on the host.
+      # Absolute path so this compose file can live anywhere on disk, not just
+      # at <project-root>/docker/claude-windows.
+      - type: bind
+        source: C:\Development\InstrumentControl-EMSLApp
+        target: C:\workspace
+      # Sibling repo referenced by LotusApp.sln as "..\Avery.Controls\..." —
+      # from C:\workspace that resolves to C:\Avery.Controls, so mount it there.
+      - type: bind
+        source: C:\Development\Avery.Controls
+        target: C:\Avery.Controls
+      # Devices.csproj references Basler.Pylon.dll from the SDK install path;
+      # mount the host's SDK read-only at the same path so the compile-time
+      # reference (and LotusApp's conditional runtime-DLL copy) both resolve.
+      - type: bind
+        source: C:\Program Files\Basler\pylon
+        target: C:\Program Files\Basler\pylon
+        read_only: true
+      # Claude Code auth + settings (CLAUDE_CONFIG_DIR points here).
+      - type: volume
+        source: claude-config
+        target: C:\claude-config
+      # NuGet package cache (NUGET_PACKAGES points here) so restores are fast
+      # across container recreations.
+      - type: volume
+        source: nuget-packages
+        target: C:\nuget-packages
+      # ConfigManager hardcodes C:\Avery\Config; persist the generated config
+      # so app runs keep their settings between container recreations.
+      - type: volume
+        source: avery-config
+        target: C:\Avery
+    working_dir: C:\workspace
+    command: powershell
+
+volumes:
+  claude-config:
+  nuget-packages:
+  avery-config:
