@@ -36,8 +36,10 @@ RUN Invoke-WebRequest -Uri ('https://github.com/cli/cli/releases/download/v{0}/g
 RUN npm config set prefix C:\npm --location=global; `
     npm install -g @anthropic-ai/claude-code
 
-# Machine PATH: node's MSI already added itself; append git, gh, and the npm prefix.
-RUN setx /M PATH ($env:PATH + ';C:\git\cmd;C:\git\bin;C:\git\usr\bin;C:\gh\bin;C:\npm')
+# Machine PATH: node's MSI already added itself; prepend git, gh, and the npm
+# prefix so our configured portable Git wins over the base image's MinGit
+# (C:\Program Files\MinGit), which has no safe.directory/longpaths config.
+RUN setx /M PATH ('C:\git\cmd;C:\git\bin;C:\git\usr\bin;C:\gh\bin;C:\npm;' + $env:PATH)
 
 ENV CLAUDE_CODE_GIT_BASH_PATH="C:\git\bin\bash.exe" `
     CLAUDE_CONFIG_DIR="C:\claude-config" `

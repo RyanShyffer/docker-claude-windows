@@ -8,8 +8,8 @@ CLI, and Claude Code preinstalled, configured to run Claude Code in YOLO mode
 edits all land on the host.
 
 > **Machine-specific paths.** The bind mounts in `docker-compose.yml` (repo
-> checkout, `Avery.Controls`, Basler Pylon SDK) are hardcoded absolute paths
-> for this machine (`C:\Development\...`), and
+> checkout, `Avery.Controls`, Basler Pylon SDK, personal skills) are hardcoded
+> absolute paths for this machine (`C:\Development\...`), and
 > `Claude YOLO (Lotus Container).lnk` is a shortcut pointing at
 > `start-claude-yolo.ps1` on this machine. Anyone else using this repo will
 > need to update those paths for their own checkout locations.
@@ -116,5 +116,10 @@ claude --version
   SDK install path, so the compose file mounts the host's
   `C:\Program Files\Basler\pylon` read-only at the same path in the container.
   The host must have the Pylon SDK installed for the solution to compile.
+- **Skills:** `C:\Development\AiSkills` on the host is bind-mounted to
+  `C:\claude-config\skills` (nested under the `claude-config` volume, since
+  `CLAUDE_CONFIG_DIR=C:\claude-config`), so Claude inside the container sees
+  the same personal skills as the host install. Edits to skills on the host
+  take effect immediately, no rebuild needed.
 - **PowerShell:** the container has Windows PowerShell 5.1 (`powershell`), not
   pwsh 7. That's fine for Claude Code; its Bash tool uses the bundled Git Bash.

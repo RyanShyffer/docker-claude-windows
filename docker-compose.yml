@@ -40,6 +40,11 @@ services:
       - type: volume
         source: claude-config
         target: C:\claude-config
+      # Personal skills, mounted live under the config volume so edits on the
+      # host are picked up without rebuilding the image.
+      - type: bind
+        source: C:\Development\AiSkills
+        target: C:\claude-config\skills
       # NuGet package cache (NUGET_PACKAGES points here) so restores are fast
       # across container recreations.
       - type: volume
