@@ -1,4 +1,4 @@
-# Claude Code in a Windows container
+# Claude Code in a Windows Container
 
 A Windows Server Core container with the .NET 10 SDK, Git, Node.js, the GitHub
 CLI, and Claude Code preinstalled, configured to run Claude Code in YOLO mode
