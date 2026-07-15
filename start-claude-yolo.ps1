@@ -20,14 +20,18 @@ function Get-EngineOs {
     try { docker version --format '{{.Server.Os}}' 2>$null } catch { $null }
 }
 
-if (-not (Get-EngineOs)) {
+# Docker's background services can outlive the Desktop app itself, and the
+# engine-switch pipe (dockerBackendApiServer) only exists while the app runs —
+# so check for the app process, not just daemon reachability.
+if (-not (Get-Process 'Docker Desktop' -ErrorAction SilentlyContinue)) {
     Write-Host 'Starting Docker Desktop...'
     Start-Process $dockerDesktop
-    $deadline = (Get-Date).AddMinutes(3)
-    while (-not (Get-EngineOs)) {
-        if ((Get-Date) -gt $deadline) { throw 'Docker daemon did not come up within 3 minutes.' }
-        Start-Sleep -Seconds 3
-    }
+}
+
+$deadline = (Get-Date).AddMinutes(3)
+while (-not (Get-EngineOs)) {
+    if ((Get-Date) -gt $deadline) { throw 'Docker daemon did not come up within 3 minutes.' }
+    Start-Sleep -Seconds 3
 }
 
 if ((Get-EngineOs) -ne 'windows') {
